@@ -1,15 +1,27 @@
+using System.Configuration;
 using System.Reflection;
+using HotelListing.Data;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddCors(o =>
+{
+    o.AddPolicy("AllowAll", b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<HotelContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnection"));
+});
 builder.Logging.AddSerilog();
 
 string logPath = Path.Combine(Directory.GetDirectoryRoot(Directory.GetCurrentDirectory()), "HotelListingLogs",
@@ -26,6 +38,7 @@ try
     var app = builder.Build();
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors("AllowAll");
     app.UseHttpsRedirection();
     app.UseAuthorization();
     app.MapControllers();
