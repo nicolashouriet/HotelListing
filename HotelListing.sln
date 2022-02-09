@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelListing.Data", "HotelL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelListing.Tools", "HotelListing.Tools\HotelListing.Tools.csproj", "{4BDDC749-0B2E-4869-9FBA-D60C3C9E670B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotelListing.Persistence", "HotelListing.Persistence\HotelListing.Persistence.csproj", "{FA770688-2A8D-4609-B30E-12E4B9D00256}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{4BDDC749-0B2E-4869-9FBA-D60C3C9E670B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BDDC749-0B2E-4869-9FBA-D60C3C9E670B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4BDDC749-0B2E-4869-9FBA-D60C3C9E670B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA770688-2A8D-4609-B30E-12E4B9D00256}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA770688-2A8D-4609-B30E-12E4B9D00256}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA770688-2A8D-4609-B30E-12E4B9D00256}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA770688-2A8D-4609-B30E-12E4B9D00256}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

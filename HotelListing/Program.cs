@@ -1,6 +1,7 @@
 using System.Configuration;
 using System.Reflection;
 using HotelListing.Data;
+using HotelListing.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
@@ -15,6 +16,7 @@ builder.Services.AddCors(o =>
 {
     o.AddPolicy("AllowAll", b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
+builder.Services.AddAutoMapper(typeof(MapperInitializer));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
