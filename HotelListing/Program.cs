@@ -3,6 +3,7 @@ using System.Reflection;
 using HotelListing.Data;
 using HotelListing.Data.Configurations;
 using HotelListing.Persistence;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
@@ -23,6 +24,9 @@ builder.Services.AddAutoMapper(typeof(MapperInitializer));
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAuthentication();
+builder.Services.ConfigureIdentity();
 
 builder.Services.AddDbContext<HotelContext>(options =>
 {
@@ -57,7 +61,6 @@ try
     //     );
     //     endpoints.MapControllers();
     // });
-    
     
     Log.Information("Application is starting");
     app.Run();

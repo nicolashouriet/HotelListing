@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Configuration;
+using HotelListing.Data.Model;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -7,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HotelListing.Data;
 
-public class HotelContext : DbContext
+public class HotelContext : IdentityDbContext<ApiUser>
 {
     public HotelContext(DbContextOptions options) : base(options)
     {
@@ -25,9 +27,9 @@ public class HotelContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        //modelBuilder.Entity<Hotel>().HasOne(b => b.Country).WithMany().HasForeignKey(d => d.CountryId);
-        //modelBuilder.Entity<Country>().HasMany(b => b.Hotels).WithOne().HasForeignKey(d => d.CountryId);
-        
+        // for IdentityDbContext
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Country>().HasData(
             new Country()
             {
