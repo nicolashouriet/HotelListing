@@ -25,8 +25,9 @@ public class HotelContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Hotel>().HasOne(b => b.Country).WithMany();
-
+        //modelBuilder.Entity<Hotel>().HasOne(b => b.Country).WithMany().HasForeignKey(d => d.CountryId);
+        //modelBuilder.Entity<Country>().HasMany(b => b.Hotels).WithOne().HasForeignKey(d => d.CountryId);
+        
         modelBuilder.Entity<Country>().HasData(
             new Country()
             {

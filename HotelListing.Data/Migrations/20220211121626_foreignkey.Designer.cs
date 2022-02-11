@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelListing.Data.Migrations
 {
     [DbContext(typeof(HotelContext))]
-    [Migration("20220209163544_seeddata")]
-    partial class seeddata
+    [Migration("20220211121626_foreignkey")]
+    partial class foreignkey
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -122,12 +122,17 @@ namespace HotelListing.Data.Migrations
             modelBuilder.Entity("HotelListing.Data.Hotel", b =>
                 {
                     b.HasOne("HotelListing.Data.Country", "Country")
-                        .WithMany()
+                        .WithMany("Hotels")
                         .HasForeignKey("CountryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("HotelListing.Data.Country", b =>
+                {
+                    b.Navigation("Hotels");
                 });
 #pragma warning restore 612, 618
         }

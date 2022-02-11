@@ -4,7 +4,7 @@
 
 namespace HotelListing.Data.Migrations
 {
-    public partial class seeddata : Migration
+    public partial class foreignkey : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

@@ -2,6 +2,7 @@ using System.Configuration;
 using System.Reflection;
 using HotelListing.Data;
 using HotelListing.Data.Configurations;
+using HotelListing.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
@@ -11,12 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 builder.Services.AddCors(o =>
 {
     o.AddPolicy("AllowAll", b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 builder.Services.AddAutoMapper(typeof(MapperInitializer));
+
+//TODO: optimize later as with this variant a new unit of work is instantiated for each request!
+builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -45,14 +49,14 @@ try
     app.UseAuthorization();
     app.MapControllers();
 
-    app.UseEndpoints(endpoints =>
-    {
-        // endpoints.MapControllerRoute(
-        //     name: "default",
-        //     pattern: "{controller=Home}/{action=Index}/{id?}"
-        // );
-        endpoints.MapControllers();
-    });
+    // app.UseEndpoints(endpoints =>
+    // {
+    //     endpoints.MapControllerRoute(
+    //         name: "default",
+    //         pattern: "{controller=Country}/{action=Index}/{id?}"
+    //     );
+    //     endpoints.MapControllers();
+    // });
     
     
     Log.Information("Application is starting");
