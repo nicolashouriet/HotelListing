@@ -2,6 +2,7 @@ using System.Configuration;
 using System.Reflection;
 using HotelListing.Data;
 using HotelListing.Data.Configurations;
+using HotelListing.Data.Services;
 using HotelListing.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -22,11 +23,13 @@ builder.Services.AddAutoMapper(typeof(MapperInitializer));
 
 //TODO: optimize later as with this variant a new unit of work is instantiated for each request!
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAuthManager, AuthManager>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddAuthentication();
 builder.Services.ConfigureIdentity();
+builder.Services.ConfigureJWT(builder.Configuration);
 
 builder.Services.AddDbContext<HotelContext>(options =>
 {
@@ -50,6 +53,7 @@ try
     app.UseSwaggerUI();
     app.UseCors("AllowAll");
     app.UseHttpsRedirection();
+    app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
 

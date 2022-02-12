@@ -2,6 +2,7 @@
 using AutoMapper;
 using HotelListing.Data.DTOs;
 using HotelListing.Data.Model;
+using HotelListing.Data.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,15 +18,17 @@ public class AccountController : Controller
     
     // not needed thanks to the tokens system
     //private readonly SignInManager<ApiUser> _signInManager;
+    private readonly IAuthManager _authManager;
     private readonly ILogger<AccountController> _logger;
     private readonly IMapper _mapper;
 
-    public AccountController(IMapper mapper, ILogger<AccountController> logger, UserManager<ApiUser> userManager)
+    public AccountController(IMapper mapper, ILogger<AccountController> logger, UserManager<ApiUser> userManager, IAuthManager authManager)
     {
         _mapper = mapper;
         _logger = logger;
         // _signInManager = signInManager;
         _userManager = userManager;
+        _authManager = authManager;
     }
 
     [HttpPost]
@@ -58,6 +61,7 @@ public class AccountController : Controller
                 return BadRequest(errorMessage);
             }
 
+            await _userManager.AddToRolesAsync(user, userDto.Roles);
             return Accepted();
         }
         catch (Exception ex)
@@ -67,32 +71,29 @@ public class AccountController : Controller
         }
     }
     
-    // [HttpPost]
-    // [Route("login")]
-    // public async Task<IActionResult> Login([FromBody] LoginUserDTO userDto)
-    // {
-    //     _logger.LogInformation($"Login attempt for {userDto.Email} ");
-    //     if (!ModelState.IsValid)
-    //     {
-    //         return BadRequest(ModelState);
-    //     }
-    //
-    //     try
-    //     {
-    //         SignInResult? result = await _signInManager.PasswordSignInAsync(userDto.Email, userDto.Password,
-    //             isPersistent: false, lockoutOnFailure: false);
-    //
-    //         if (!result.Succeeded)
-    //         {
-    //             return Unauthorized(userDto);
-    //         }
-    //
-    //         return Accepted();
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, $"Something went wrong in the {nameof(Login)} method.");
-    //         return Problem($"Something went wrong in the {nameof(Login)} method.", statusCode: 500);
-    //     }
-    // }
+    [HttpPost]
+    [Route("login")]
+    public async Task<IActionResult> Login([FromBody] LoginUserDTO userDto)
+    {
+        _logger.LogInformation($"Login attempt for {userDto.Email} ");
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+    
+        try
+        {
+            if (!await _authManager.ValidateUser(userDto))
+            {
+                return Unauthorized();
+            }
+
+            return Accepted(new {Token = await _authManager.CreateToken()});
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Something went wrong in the {nameof(Login)} method.");
+            return Problem($"Something went wrong in the {nameof(Login)} method.", statusCode: 500);
+        }
+    }
 }
