@@ -20,6 +20,11 @@ public class CreateHotelDTO
     public int CountryId { get; set; }
 }
 
+public class UpdateHotelDTO : CreateHotelDTO
+{
+    // empty on purpose
+}
+
 public class HotelDTO : CreateHotelDTO
 {
     public int Id { get; set; }
