@@ -27,38 +27,22 @@ public class HotelController : Controller
     [ProducesResponseType((StatusCodes.Status500InternalServerError))]
     public async Task<IActionResult> GetHotels()
     {
-        try
-        {
-            var hotels = await _unitOfWork.Hotels.GetAll();
-            var result = _mapper.Map<List<HotelDTO>>(hotels);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Something went wrong in the {nameof(GetHotels)} method: ");
-            return StatusCode(500, "Internal servor error.");
-        }
+        var hotels = await _unitOfWork.Hotels.GetAll();
+        var result = _mapper.Map<List<HotelDTO>>(hotels);
+        return Ok(result);
     }
-    
+
     [HttpGet("{id:int}")]
     [ProducesResponseType((StatusCodes.Status200OK))]
     [ProducesResponseType((StatusCodes.Status500InternalServerError))]
     public async Task<IActionResult> GetHotel(int id)
     {
-        try
-        {
-            var hotel = await _unitOfWork.Hotels.Get(c => c.Id == id, new List<string>() { "Country" });
-            var result = _mapper.Map<HotelDTO>(hotel);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Something went wrong in the {nameof(GetHotel)} method: ");
-            return StatusCode(500, "Internal servor error.");
-        }
+        var hotel = await _unitOfWork.Hotels.Get(c => c.Id == id, new List<string>() {"Country"});
+        var result = _mapper.Map<HotelDTO>(hotel);
+        return Ok(result);
     }
-    
-    [Authorize(Roles="Admin")]
+
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [ProducesResponseType((StatusCodes.Status400BadRequest))]
     [ProducesResponseType((StatusCodes.Status201Created))]
@@ -71,19 +55,11 @@ public class HotelController : Controller
             return BadRequest(ModelState);
         }
 
-        try
-        {
-            Hotel hotel = _mapper.Map<Hotel>(hotelDto);
-            await _unitOfWork.Hotels.Insert(hotel);
-            await _unitOfWork.Save();
+        Hotel hotel = _mapper.Map<Hotel>(hotelDto);
+        await _unitOfWork.Hotels.Insert(hotel);
+        await _unitOfWork.Save();
 
-            return CreatedAtRoute("GetHotel", new {id = hotel.Id}, hotel);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Something went wrong in the {nameof(CreateHotel)} method: ");
-            return StatusCode(500, "Internal servor error.");
-        }
+        return CreatedAtRoute("GetHotel", new {id = hotel.Id}, hotel);
     }
 
     [Authorize]
@@ -98,58 +74,41 @@ public class HotelController : Controller
             return BadRequest(ModelState);
         }
 
-        try
+        Hotel hotel = await _unitOfWork.Hotels.Get(q => q.Id == id);
+        if (hotel == null)
         {
-            Hotel hotel = await _unitOfWork.Hotels.Get(q => q.Id == id);
-            if (hotel == null)
-            {
-                _logger.LogError($"Invalid PUT attempt in {nameof(UpdateHotel)}");
-                return BadRequest("The provided id does not match a DB hotel.");
-            }
-
-            _mapper.Map(hotelDto, hotel);
-            // since AsNoTracking() has been called on Get()
-            _unitOfWork.Hotels.Update(hotel);
-            await _unitOfWork.Save();
-
-            return NoContent();
+            _logger.LogError($"Invalid PUT attempt in {nameof(UpdateHotel)}");
+            return BadRequest("The provided id does not match a DB hotel.");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Something went wrong in the {nameof(UpdateHotel)} method: ");
-            return StatusCode(500, "Internal servor error.");
-        }
+
+        _mapper.Map(hotelDto, hotel);
+        // since AsNoTracking() has been called on Get()
+        _unitOfWork.Hotels.Update(hotel);
+        await _unitOfWork.Save();
+
+        return NoContent();
     }
 
     [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteHotel(int id)
     {
-        try
+        if (id < 1)
         {
-            if (id < 1)
-            {
-                _logger.LogError($"Invalid DELETE attempt in {nameof(DeleteHotel)}");
-                return BadRequest(ModelState);
-            }
-            
-            Hotel hotel = await _unitOfWork.Hotels.Get(q => q.Id == id);
-            if (hotel == null)
-            {
-                _logger.LogError($"Invalid DELETE attempt in {nameof(DeleteHotel)}");
-                return BadRequest("The provided id does not match a DB hotel.");
-            }
-            
-            
-            await _unitOfWork.Hotels.Delete(id);
-            await _unitOfWork.Save();
+            _logger.LogError($"Invalid DELETE attempt in {nameof(DeleteHotel)}");
+            return BadRequest(ModelState);
+        }
 
-            return NoContent();
-        }
-        catch (Exception ex)
+        Hotel hotel = await _unitOfWork.Hotels.Get(q => q.Id == id);
+        if (hotel == null)
         {
-            _logger.LogError(ex, $"Something went wrong in the {nameof(DeleteHotel)} method: ");
-            return StatusCode(500, "Internal servor error.");
+            _logger.LogError($"Invalid DELETE attempt in {nameof(DeleteHotel)}");
+            return BadRequest("The provided id does not match a DB hotel.");
         }
+
+        await _unitOfWork.Hotels.Delete(id);
+        await _unitOfWork.Save();
+
+        return NoContent();
     }
 }

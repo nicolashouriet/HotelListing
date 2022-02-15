@@ -15,14 +15,15 @@ namespace HotelListing.Controllers;
 public class AccountController : Controller
 {
     private readonly UserManager<ApiUser> _userManager;
-    
+
     // not needed thanks to the tokens system
     //private readonly SignInManager<ApiUser> _signInManager;
     private readonly IAuthManager _authManager;
     private readonly ILogger<AccountController> _logger;
     private readonly IMapper _mapper;
 
-    public AccountController(IMapper mapper, ILogger<AccountController> logger, UserManager<ApiUser> userManager, IAuthManager authManager)
+    public AccountController(IMapper mapper, ILogger<AccountController> logger, UserManager<ApiUser> userManager,
+        IAuthManager authManager)
     {
         _mapper = mapper;
         _logger = logger;
@@ -43,34 +44,27 @@ public class AccountController : Controller
             return BadRequest(ModelState);
         }
 
-        try
-        {
-            ApiUser? user = _mapper.Map<ApiUser>(userDto);
-            user.UserName = userDto.Email;
-            IdentityResult? result = await _userManager.CreateAsync(user, userDto.Password);
+        ApiUser? user = _mapper.Map<ApiUser>(userDto);
+        user.UserName = userDto.Email;
+        IdentityResult? result = await _userManager.CreateAsync(user, userDto.Password);
 
-            if (!result.Succeeded)
+        if (!result.Succeeded)
+        {
+            string errorMessage = "User registration attempt failed!";
+
+            foreach (var error in result.Errors)
             {
-                string errorMessage = "User registration attempt failed!";
-                
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(error.Code, error.Description);
-                    errorMessage += "\r" + error.Description;
-                }
-                return BadRequest(errorMessage);
+                ModelState.AddModelError(error.Code, error.Description);
+                errorMessage += "\r" + error.Description;
             }
 
-            await _userManager.AddToRolesAsync(user, userDto.Roles);
-            return Accepted();
+            return BadRequest(errorMessage);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Something went wrong in the {nameof(Register)} method.");
-            return Problem($"Something went wrong in the {nameof(Register)} method.", statusCode: 500);
-        }
+
+        await _userManager.AddToRolesAsync(user, userDto.Roles);
+        return Accepted();
     }
-    
+
     [HttpPost]
     [Route("login")]
     public async Task<IActionResult> Login([FromBody] LoginUserDTO userDto)
@@ -80,20 +74,12 @@ public class AccountController : Controller
         {
             return BadRequest(ModelState);
         }
-    
-        try
-        {
-            if (!await _authManager.ValidateUser(userDto))
-            {
-                return Unauthorized();
-            }
 
-            return Accepted(new {Token = await _authManager.CreateToken()});
-        }
-        catch (Exception ex)
+        if (!await _authManager.ValidateUser(userDto))
         {
-            _logger.LogError(ex, $"Something went wrong in the {nameof(Login)} method.");
-            return Problem($"Something went wrong in the {nameof(Login)} method.", statusCode: 500);
+            return Unauthorized();
         }
+
+        return Accepted(new {Token = await _authManager.CreateToken()});
     }
 }

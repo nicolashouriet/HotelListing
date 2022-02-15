@@ -1,6 +1,8 @@
 ﻿using System.Linq.Expressions;
 using HotelListing.Data;
+using HotelListing.Data.Model;
 using Microsoft.EntityFrameworkCore;
+using X.PagedList;
 
 namespace HotelListing.Persistence;
 
@@ -39,6 +41,13 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         }
 
         return await query.AsNoTracking().ToListAsync();
+    }
+    
+    public async Task<IPagedList<T>> GetAll(RequestParams requestParams)
+    {
+        IQueryable<T> query = _db;
+        
+        return await query.AsNoTracking().ToPagedListAsync(requestParams.PageNumber, requestParams.PageSize);
     }
 
     public async Task<T> Get(Expression<Func<T, bool>> expression, List<string> includes = null)

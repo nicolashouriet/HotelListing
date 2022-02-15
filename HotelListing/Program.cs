@@ -4,7 +4,9 @@ using HotelListing.Data;
 using HotelListing.Data.Configurations;
 using HotelListing.Data.Services;
 using HotelListing.Persistence;
+using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
@@ -14,11 +16,26 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers().AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
-builder.Services.AddCors(o =>
-{
-    o.AddPolicy("AllowAll", b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-});
+builder.Services.AddControllers(config =>
+        config.CacheProfiles.Add("120sec", new CacheProfile()
+        {
+            Duration = 120
+        }))
+    .AddNewtonsoftJson(op =>
+        op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
+builder.Services.AddResponseCaching();
+builder.Services.AddMemoryCache();
+builder.Services.ConfigureRateLimiting();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpCacheHeaders((expirationOpts) =>
+    {
+        expirationOpts.MaxAge = 120;
+        expirationOpts.CacheLocation = CacheLocation.Private;
+    },
+    (validationOpt) => { validationOpt.MustRevalidate = true; });
+
+builder.Services.AddCors(o => { o.AddPolicy("AllowAll", b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()); });
 builder.Services.AddAutoMapper(typeof(MapperInitializer));
 
 //TODO: optimize later as with this variant a new unit of work is instantiated for each request!
@@ -35,6 +52,7 @@ builder.Services.AddDbContext<HotelContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("sqlConnection"));
 });
+
 builder.Logging.AddSerilog();
 
 string logPath = Path.Combine(Directory.GetDirectoryRoot(Directory.GetCurrentDirectory()), "HotelListingLogs",
@@ -51,10 +69,15 @@ try
     var app = builder.Build();
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.ConfigureExceptionHandler();
     app.UseCors("AllowAll");
     app.UseHttpsRedirection();
+
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseRouting();
+    app.UseResponseCaching();
+    app.UseHttpCacheHeaders();
     app.MapControllers();
 
     // app.UseEndpoints(endpoints =>
@@ -65,7 +88,7 @@ try
     //     );
     //     endpoints.MapControllers();
     // });
-    
+
     Log.Information("Application is starting");
     app.Run();
 }
